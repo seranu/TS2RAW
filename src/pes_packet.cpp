@@ -2,6 +2,7 @@
 #include "utils.h"
 
 #include <cassert>
+#include <cstring>
 
 using utils::Endianness;
 
@@ -52,7 +53,6 @@ pes_extended_header_t::pes_extended_header(const unsigned char* aInput, int aSiz
     assert(aSize >= KBaseHeaderLen + 3);
     int offset = KBaseHeaderLen;
     flags = utils::ReadUInt16(aInput + offset, Endianness::BigEndian);
-
     offset += 2;
     PES_header_data_length = utils::ReadUInt8(aInput + offset); 
 }

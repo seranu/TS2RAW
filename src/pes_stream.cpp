@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <cassert>
+#include <cstring>
 
 // TODO remove
 #include <iostream>

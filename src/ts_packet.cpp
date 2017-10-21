@@ -2,6 +2,7 @@
 #include "utils.h"
 
 #include <cassert>
+#include <cstring>
 
 // TODO: remove
 #include <iostream>
