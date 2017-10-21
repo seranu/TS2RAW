@@ -4,7 +4,12 @@
 #include <cassert>
 #include <cstring>
 
-using utils::Endianness;
+#include <iostream>
+
+using ts2raw::utils::Endianness;
+using ts2raw::utils::ReadUInt8;
+using ts2raw::utils::ReadUInt16;
+using ts2raw::utils::ReadUInt32;
 
 #define PROGRAM_STREAM_MAP              0xBC
 #define PRIVATE_STREAM_1                0xBD
@@ -35,16 +40,20 @@ namespace ts2raw {
 // len(PES_packet_length) = 16
 const int KBaseHeaderLen = 6; 
 
+// len(flags) = 16
+// len(PES_header_data_length) = 8
+const int KExtendedHeaderLength = 3;
+
 const int PESPacket::KPESPacketMagic = 0x01;
 
 pes_header_t::pes_header(const unsigned char* aInput, int size) {
     assert(size >= 6);
     int offset = 0;
-    int32_t tmp32 = utils::ReadUInt32(aInput, Endianness::BigEndian);
+    int32_t tmp32 = ReadUInt32(aInput, Endianness::BigEndian);
     offset += 4;
     packet_start_code_prefix = (tmp32 & 0xFFFFFF00) >> 8;
     stream_id = (tmp32 & 0xFF);
-    PES_packet_length = utils::ReadUInt16(aInput + offset, Endianness::BigEndian);
+    PES_packet_length = ReadUInt16(aInput + offset, Endianness::BigEndian);
 }
 
 pes_extended_header_t::pes_extended_header(const unsigned char* aInput, int aSize) :
@@ -52,9 +61,9 @@ pes_extended_header_t::pes_extended_header(const unsigned char* aInput, int aSiz
         PES_header_data_length(0) {
     assert(aSize >= KBaseHeaderLen + 3);
     int offset = KBaseHeaderLen;
-    flags = utils::ReadUInt16(aInput + offset, Endianness::BigEndian);
+    flags = ReadUInt16(aInput + offset, Endianness::BigEndian);
     offset += 2;
-    PES_header_data_length = utils::ReadUInt8(aInput + offset); 
+    PES_header_data_length = ReadUInt8(aInput + offset); 
 }
 
 
@@ -70,15 +79,15 @@ PESPacket::PESPacket(unsigned char* aInput, int aSize, const pes_header_t& aHead
     assert(_baseHeader.packet_start_code_prefix == KPESPacketMagic);
 
     if(_HasExtendedHeader(_baseHeader.stream_id)) {
-        _extendedHeader = pes_extended_header_t(_data + KBaseHeaderLen, _dataSize - KBaseHeaderLen);
+        _extendedHeader = pes_extended_header_t(_data, _dataSize);
         _payload = _data + 
             KBaseHeaderLen +
-            3 + // << flags + PES_header_data_length
+            KExtendedHeaderLength +
             _extendedHeader.PES_header_data_length;
 
         _payloadSize = _dataSize - 
             KBaseHeaderLen - 
-            3 - 
+            KExtendedHeaderLength - 
             _extendedHeader.PES_header_data_length;
             
     } else {

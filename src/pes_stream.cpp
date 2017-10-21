@@ -8,8 +8,8 @@
 // TODO remove
 #include <iostream>
 
-using utils::Endianness;
-using utils::TSException;
+using ts2raw::utils::Endianness;
+using ts2raw::utils::TSException;
 
 #define PES_PACKET_MAGIC 0x01
 
@@ -75,7 +75,7 @@ void PESStream::_WrapUpLastPacket() {
                 std::cin.get();
             }
         }
-        _packets.push_back(utils::make_unique<PESPacket>(_pCurrentData, _currentOffset, *_pCurrentHeader));
+        _packets.push_back(ts2raw::utils::make_unique<PESPacket>(_pCurrentData, _currentOffset, *_pCurrentHeader));
         // how to pass ownership to avoid copy?!?
         delete [] _pCurrentData;
         delete [] _pCurrentHeader;

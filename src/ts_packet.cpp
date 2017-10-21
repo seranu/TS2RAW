@@ -9,8 +9,10 @@
 using namespace std;
 
 
-using utils::Endianness;
-using utils::TSException;
+using ts2raw::utils::Endianness;
+using ts2raw::utils::TSException;
+using ts2raw::utils::ReadUInt8;
+using ts2raw::utils::ReadUInt32;
 
 #define TS_PACKET_MAGIC 0x47
 
@@ -49,20 +51,19 @@ TSPacket::TSPacket(unsigned char* aInput, int size)
     int offset = KStreamHeaderSize;
 
     memcpy(_data, aInput, KStreamPacketSize);
-    _header = stream_packet_header_t(utils::ReadUInt32(_data, Endianness::BigEndian));
+    _header = stream_packet_header_t(ReadUInt32(_data, Endianness::BigEndian));
 
     if(_header.sync_byte != TS_PACKET_MAGIC) {
         throw TSException("Invalid TS packet");
-    } // check real value
+    }
 
     // adaptation header exists
 	if(_header.adaptation_field_control == 2 ||  // << 10
 	_header.adaptation_field_control == 3)  {    // << 11
-        uint8_t adaptationHeaderLen = utils::ReadUInt8(_data + offset);
+        uint8_t adaptation_field_length = ReadUInt8(_data + offset);
         // if you ever have doubts about +1, look here
         // this +1 is for the UInt8 you just read
-		offset += adaptationHeaderLen + 1;
-		//cout << "Adaptation header; moving " << static_cast<int>(adaptationHeaderLen) << "\n";
+		offset += adaptation_field_length + 1;
 	}
 
 	// payload exists

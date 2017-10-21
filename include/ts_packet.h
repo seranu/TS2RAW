@@ -40,8 +40,6 @@ public:
         size = _payloadSize;
         return _payload;
     }
-
-
 private:
     unsigned char _data[KStreamPacketSize];
     unsigned char* _payload;

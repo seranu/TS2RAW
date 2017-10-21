@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cassert>
 
+namespace ts2raw {
 namespace utils {
 
 uint8_t ReadUInt8(const unsigned char* aFrom) {
@@ -52,4 +53,5 @@ uint32_t ReadUInt32(const unsigned char* aFrom, Endianness aEndian) {
     }
 }
 
-}
+} // namespace utils
+} // namespace ts2raw

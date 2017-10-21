@@ -1,9 +1,11 @@
 #include "ts_extractor.h"
-#include "transport_stream_reader.h"
+#include "ts_reader.h"
 #include "pes_stream.h"
 
 #include <map>
 #include <iostream>
+
+#define NULL_PACKET_PID 0x1FFF
 
 namespace ts2raw {
 
@@ -31,7 +33,7 @@ static bool IsPESPacket(
     return result;
 }
 
-int TSExtractor::Extract(
+void TSExtractor::Extract(
     const std::string& aInputFilename,
     const std::string& aOutputVideoFilename,
     const std::string& aOutputAudioFilename
@@ -39,15 +41,24 @@ int TSExtractor::Extract(
     TransportStreamReader tsReader(aInputFilename);
     std::map<int, PESStream> streamMap;
 
-    std::unique_ptr<TSPacket> pPacket = std::move(tsReader.NextPacket());
+    // go through all packages in the file
+    for(
+        std::unique_ptr<TSPacket> pPacket = std::move(tsReader.NextPacket());
+        pPacket;
+        pPacket = std::move(tsReader.NextPacket())
+    ){
+        // drop null packages
+        if(pPacket->GetPid() == NULL_PACKET_PID){
+            continue;
+        }
 
-    while(pPacket){
+        // only interested in PES packages
         if(IsPESPacket(*pPacket, streamMap)) {
             streamMap[pPacket->GetPid()].AddTSPacket(*pPacket);
         }
-        pPacket = std::move(tsReader.NextPacket());
     }
 
+    // write PES packages to coresponding output files
     for(auto& mapPair : streamMap){
         auto& pesStream = mapPair.second;
         if(pesStream.IsVideo()){
@@ -58,8 +69,6 @@ int TSExtractor::Extract(
             pesStream.Unpack(aOutputAudioFilename);
         }
     }
-    
-    return 0;
 }
 
 } //namespace ts2raw

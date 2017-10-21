@@ -17,8 +17,6 @@ public:
 private:
     std::ifstream _inputFile;
     std::string _inputFilename;
-
-    void _lazyOpen();
 };
 
 }
