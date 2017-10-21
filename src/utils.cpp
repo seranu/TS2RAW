@@ -6,11 +6,13 @@
 namespace ts2raw {
 namespace utils {
 
+
 uint8_t ReadUInt8(const unsigned char* aFrom) {
     assert(aFrom != nullptr);
     return static_cast<uint8_t>(aFrom[0]);
 }
 
+// read an unsigned 16bit integer from a BigEndian format
 uint16_t ReadUInt16BE(const unsigned char* aFrom) {
     uint8_t b1 = static_cast<uint8_t>(aFrom[0]);
     uint8_t b2 = static_cast<uint8_t>(aFrom[1]);
@@ -19,6 +21,7 @@ uint16_t ReadUInt16BE(const unsigned char* aFrom) {
     return r;
 }
 
+// read an unsigned 32bit integer from a BigEndian format
 uint32_t ReadUInt32BE(const unsigned char* aFrom) {
     uint8_t b1 = static_cast<uint8_t>(aFrom[0]);
     uint8_t b2 = static_cast<uint8_t>(aFrom[1]);

@@ -11,6 +11,7 @@ using ts2raw::utils::ReadUInt8;
 using ts2raw::utils::ReadUInt16;
 using ts2raw::utils::ReadUInt32;
 
+// stream id's 
 #define PROGRAM_STREAM_MAP              0xBC
 #define PRIVATE_STREAM_1                0xBD
 #define PADDING_STREAM                  0xBE
@@ -56,7 +57,8 @@ pes_header_t::pes_header(const unsigned char* aInput, int size) {
     PES_packet_length = ReadUInt16(aInput + offset, Endianness::BigEndian);
 }
 
-pes_extended_header_t::pes_extended_header(const unsigned char* aInput, int aSize) :
+pes_extended_header_t::pes_extended_header(
+    const unsigned char* aInput, int aSize) :
         flags(0),
         PES_header_data_length(0) {
     assert(aSize >= KBaseHeaderLen + 3);
@@ -72,13 +74,19 @@ PESPacket::PESPacket(unsigned char* aInput, int aSize, const pes_header_t& aHead
         _payload(nullptr),
         _dataSize(aSize),
         _payloadSize(0),
-        _baseHeader(aHeader) {
+        _baseHeader(aHeader) 
+{
+    assert(aInput != nullptr);
+    assert(aSize > 0);
+    assert(_baseHeader.packet_start_code_prefix == KPESPacketMagic);
+
+    // copy input data
     _data = new unsigned char[_dataSize];
     memcpy(_data, aInput, _dataSize);
 
-    assert(_baseHeader.packet_start_code_prefix == KPESPacketMagic);
-
     if(_HasExtendedHeader(_baseHeader.stream_id)) {
+        // the packet has extended header
+        // take that into account when computing payload data starting point
         _extendedHeader = pes_extended_header_t(_data, _dataSize);
         _payload = _data + 
             KBaseHeaderLen +

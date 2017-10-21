@@ -5,9 +5,6 @@
 #include <cassert>
 #include <cstring>
 
-// TODO remove
-#include <iostream>
-
 using ts2raw::utils::Endianness;
 using ts2raw::utils::TSException;
 
@@ -19,7 +16,8 @@ const int KMaxBufferSize = 1024 * 1024 * 10; // << 10 MB
 
 
 void PESStream::AddTSPacket(TSPacket& aTsPacket) {
-    // is it first packet?
+    // first packet in the stream
+    // set the PID of the stream
     if(_pid == -1) {
         _pid = aTsPacket.GetPid();
     }
@@ -27,41 +25,45 @@ void PESStream::AddTSPacket(TSPacket& aTsPacket) {
     int tsPayloadSize = 0;
     const unsigned char* pTsPayload = aTsPacket.GetPayload(tsPayloadSize);
 
-    if(_pid == 34){
-        int a = 34;
-        a = tsPayloadSize + a;
-    }
-
     if(aTsPacket.IsPayloadUnitStartIndicatorSet()) {
-        // new packet
-        // anything already here?
+        // this is a new PES Packet
+        // create PES packet from previously gathered data, if any
         _WrapUpLastPacket();
 
-        // read pes header
+        // read PES packet base header
         _pCurrentHeader = new pes_header_t(pTsPayload, tsPayloadSize);
 
         if(_streamId == -1) {
+            // set stream id if it's first packet of the stream
             _streamId = _pCurrentHeader->stream_id;
         }
 
+        // sanity check for PES magic
         if(_pCurrentHeader->packet_start_code_prefix != PESPacket::KPESPacketMagic) {
             throw TSException("Inavlid PES packet");
         }
 
-        // TODO: what is pes package size here?
         _bufferSize = 0;
         if(_pCurrentHeader->PES_packet_length > 0){
+            // PES packet length is specified
             _bufferSize = 6 /* base header size */
              + _pCurrentHeader->PES_packet_length; // << PES_packet_length is the remainder of the length of PES packet
         } else {
+            // PES packet length is unspecified
+            // allocate "some" memory
+            // TODO: what is proper size to allocate here?
             _bufferSize = KMaxBufferSize;
         }
         _pCurrentData = new unsigned char[_bufferSize];
+    
         assert(_bufferSize >= tsPayloadSize);
+
+        // copy TS payload into the buffer
         memcpy(_pCurrentData, pTsPayload, tsPayloadSize);
         _currentOffset = tsPayloadSize;
     } else {
-        // append payload data
+        // we already started a PES packet
+        // only append data
         assert(_bufferSize >= _currentOffset + tsPayloadSize);
         memcpy(_pCurrentData + _currentOffset, pTsPayload, tsPayloadSize);
         _currentOffset += tsPayloadSize;
@@ -70,13 +72,10 @@ void PESStream::AddTSPacket(TSPacket& aTsPacket) {
 
 void PESStream::_WrapUpLastPacket() {
     if(_pCurrentData != nullptr){
-        if(_pCurrentHeader->PES_packet_length > 0){
-            if(_pCurrentHeader->PES_packet_length + 6 != _currentOffset){
-                std::cin.get();
-            }
-        }
+        // create PES packet from gathered data
         _packets.push_back(ts2raw::utils::make_unique<PESPacket>(_pCurrentData, _currentOffset, *_pCurrentHeader));
-        // how to pass ownership to avoid copy?!?
+
+        // clean-up internal buffers
         delete [] _pCurrentData;
         delete [] _pCurrentHeader;
         _pCurrentData = nullptr;
@@ -86,10 +85,13 @@ void PESStream::_WrapUpLastPacket() {
 }
 
 void PESStream::Unpack(const std::string& aOutputFilename){
+    // we might have some gathered data
     _WrapUpLastPacket();
+
     std::ofstream out(aOutputFilename.c_str(), std::ios::out | std::ios::binary);
     if(out.is_open()) {
         for(auto& pPacket : _packets){
+            // write payload to file
             int payloadSize = 0;
             const unsigned char* payload = pPacket->GetPayload(payloadSize);
             out.write(reinterpret_cast<const char*>(payload), payloadSize);

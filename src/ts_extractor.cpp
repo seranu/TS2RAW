@@ -9,7 +9,7 @@
 
 namespace ts2raw {
 
-// determines whether a new TS package contains PES data
+// determines whether a new TS packet contains PES data
 static bool IsPESPacket(
     const TSPacket& aTsPacket, 
     const std::map<int, PESStream>& aStreamMap
@@ -41,24 +41,24 @@ void TSExtractor::Extract(
     TransportStreamReader tsReader(aInputFilename);
     std::map<int, PESStream> streamMap;
 
-    // go through all packages in the file
+    // go through all packets in the file
     for(
         std::unique_ptr<TSPacket> pPacket = std::move(tsReader.NextPacket());
         pPacket;
         pPacket = std::move(tsReader.NextPacket())
     ){
-        // drop null packages
+        // drop null packets
         if(pPacket->GetPid() == NULL_PACKET_PID){
             continue;
         }
 
-        // only interested in PES packages
+        // only interested in PES packets
         if(IsPESPacket(*pPacket, streamMap)) {
             streamMap[pPacket->GetPid()].AddTSPacket(*pPacket);
         }
     }
 
-    // write PES packages to coresponding output files
+    // write PES packets to coresponding output files
     for(auto& mapPair : streamMap){
         auto& pesStream = mapPair.second;
         if(pesStream.IsVideo()){

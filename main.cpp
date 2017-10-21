@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	else {
-		std::cout << "Usage: " << argv[0] << " <input_ts_file> <output_audio_file> <output_video_file\n";
+		std::cout << "Usage: " << argv[0] << " <input_ts_file> <output_video_file> <output_audio_file>\n";
 		return -1;
 	}
 	return 0;

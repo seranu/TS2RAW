@@ -5,9 +5,13 @@
 
 namespace ts2raw {
 
+// TS Packet header size
 const int KStreamHeaderSize = 4;
+
+// TS Packet standard size
 const int KStreamPacketSize = 188;
 
+// struct that describes a MPEG Transport Stream packet header
 typedef struct stream_packet_header {
 	uint8_t sync_byte;
 	bool transport_error_indicator;
@@ -20,24 +24,33 @@ typedef struct stream_packet_header {
 	stream_packet_header(int32_t);
 } stream_packet_header_t; 
 
+// class used to describe a MPEG Transport Stream packet
 class TSPacket {
 
 public:
-    TSPacket(unsigned char* aInput, int size);
+    // constructor
+    //   <aInput> input buffer
+    //   <aSize>  input buffer size
+    TSPacket(unsigned char* aInput, int aSize);
 
     TSPacket(const TSPacket&) = delete;
     TSPacket& operator=(const TSPacket&) = delete;
 
+    // return the PID of the TS packet
     uint16_t GetPid() const {
         return _header.pid;
     }
 
+    // returns true when a new packet starts within the payload
+    // of this TS packet
     bool IsPayloadUnitStartIndicatorSet() const {
         return _header.payload_unit_start_indicator;
     }
 
-    const unsigned char* GetPayload(int& size) const {
-        size = _payloadSize;
+    // returns a pointer to the payload data
+    //   <aSize> size of the payload data; output parameter
+    const unsigned char* GetPayload(int& aSize) const {
+        aSize = _payloadSize;
         return _payload;
     }
 private:
@@ -47,6 +60,6 @@ private:
     stream_packet_header_t _header;
 };
 
-}
+} // namespace ts2raw
 
 #endif //_TS_PACKET_H_
