@@ -3,8 +3,33 @@
 #include "pes_stream.h"
 
 #include <map>
+#include <iostream>
 
 namespace ts2raw {
+
+// determines whether a new TS package contains PES data
+static bool IsPESPacket(
+    const TSPacket& aTsPacket, 
+    const std::map<int, PESStream>& aStreamMap
+){
+    bool result = false;
+    if(aTsPacket.IsPayloadUnitStartIndicatorSet()) {
+        // ts packet containing start of packet in payload
+        int size = 0;
+        const unsigned char* payload = aTsPacket.GetPayload(size);
+        // check by header
+        if(PESPacket::IsPESPacket(payload, size)) {
+            result = true;
+        }
+    } else {
+        // continuation of already started packet in ts payload
+        // check if pid is already in streamMap
+        if(aStreamMap.find(aTsPacket.GetPid()) != aStreamMap.end()) {
+            result = true;
+        }
+    }   
+    return result;
+}
 
 int TSExtractor::Extract(
     const std::string& aInputFilename,
@@ -17,10 +42,7 @@ int TSExtractor::Extract(
     std::unique_ptr<TSPacket> pPacket = std::move(tsReader.NextPacket());
 
     while(pPacket){
-        // int size = 0;
-        // const unsigned char* payload = pPacket->GetPayload(size);
-        // if(PESPacket::IsPESPacket(payload, size)){
-        if(pPacket->GetPid() != 0 && pPacket->GetPid() != 32) {
+        if(IsPESPacket(*pPacket, streamMap)) {
             streamMap[pPacket->GetPid()].AddTSPacket(*pPacket);
         }
         pPacket = std::move(tsReader.NextPacket());

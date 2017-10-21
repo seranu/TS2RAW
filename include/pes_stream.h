@@ -18,7 +18,7 @@ public:
         _pCurrentData(nullptr), 
         _pCurrentHeader(nullptr), 
         _streamId(-1),
-        _allocated(0) {}
+        _bufferSize(0) {}
 
     PESStream(int aPid) : 
         _pid(aPid), 
@@ -26,7 +26,7 @@ public:
         _pCurrentData(nullptr), 
         _pCurrentHeader(nullptr), 
         _streamId(-1),
-        _allocated(0) {}
+        _bufferSize(0) {}
 
     PESStream(const PESStream&) = delete;
     PESStream& operator=(const PESStream&) = delete;
@@ -44,7 +44,7 @@ private:
     pes_header_t* _pCurrentHeader;
     std::vector< std::unique_ptr<PESPacket> > _packets;
     int _streamId;
-    int _allocated;
+    int _bufferSize;
     void _WrapUpLastPacket();
 }; 
 

@@ -17,8 +17,8 @@ typedef struct pes_header {
 } pes_header_t;
 
 typedef struct pes_extended_header {
-    int16_t flags;
-    int8_t PES_header_data_length;
+    uint16_t flags;
+    uint8_t PES_header_data_length;
     pes_extended_header(const unsigned char* aInput, int aSize);
     pes_extended_header() : 
         flags(0),
@@ -35,6 +35,8 @@ public:
         return _payload;
     }
 
+    static bool IsPESPacket(const unsigned char* aInput, int aSize);
+    static const int KPESPacketMagic;
 private:
     unsigned char* _data;
     unsigned char* _payload;
@@ -42,10 +44,12 @@ private:
     int _payloadSize;
     pes_header_t _baseHeader;
     pes_extended_header_t _extendedHeader;
-    
+
     bool _HasExtendedHeader(int stream_id);
 };
 
+bool IsVideoStream(int aStreamId);
+bool IsAudioStream(int aStreamId);
 }
 
 

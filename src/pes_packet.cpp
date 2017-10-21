@@ -5,8 +5,6 @@
 
 using utils::Endianness;
 
-namespace ts2raw {
-
 #define PROGRAM_STREAM_MAP              0xBC
 #define PRIVATE_STREAM_1                0xBD
 #define PADDING_STREAM                  0xBE
@@ -29,13 +27,17 @@ namespace ts2raw {
 #define RESERVED_DATA_STREAM_END        0xFE
 #define PROGRAM_STREAM_DIRECTORY        0xFF
 
+namespace ts2raw {
+
 // len(packet_start_code_prefix) = 24 
 // len(stream_id) = 8
 // len(PES_packet_length) = 16
 const int KBaseHeaderLen = 6; 
 
+const int PESPacket::KPESPacketMagic = 0x01;
+
 pes_header_t::pes_header(const unsigned char* aInput, int size) {
-    assert(size > 6);
+    assert(size >= 6);
     int offset = 0;
     int32_t tmp32 = utils::ReadUInt32(aInput, Endianness::BigEndian);
     offset += 4;
@@ -47,12 +49,12 @@ pes_header_t::pes_header(const unsigned char* aInput, int size) {
 pes_extended_header_t::pes_extended_header(const unsigned char* aInput, int aSize) :
         flags(0),
         PES_header_data_length(0) {
-    assert(aSize > 3);
+    assert(aSize >= KBaseHeaderLen + 3);
     int offset = KBaseHeaderLen;
-    int16_t flags = utils::ReadUInt16(aInput + offset, Endianness::BigEndian);
+    flags = utils::ReadUInt16(aInput + offset, Endianness::BigEndian);
 
     offset += 2;
-    int8_t PES_header_data_length = utils::ReadUInt8(aInput + offset); 
+    PES_header_data_length = utils::ReadUInt8(aInput + offset); 
 }
 
 
@@ -64,6 +66,8 @@ PESPacket::PESPacket(unsigned char* aInput, int aSize, const pes_header_t& aHead
         _baseHeader(aHeader) {
     _data = new unsigned char[_dataSize];
     memcpy(_data, aInput, _dataSize);
+
+    assert(_baseHeader.packet_start_code_prefix == KPESPacketMagic);
 
     if(_HasExtendedHeader(_baseHeader.stream_id)) {
         _extendedHeader = pes_extended_header_t(_data + KBaseHeaderLen, _dataSize - KBaseHeaderLen);
@@ -99,6 +103,22 @@ PESPacket::~PESPacket(){
         delete _data;
         _data = nullptr;
     }
+}
+
+bool PESPacket::IsPESPacket(const unsigned char* aInput, int aSize) {
+    if(aSize < KBaseHeaderLen) {
+        return false;
+    } else {
+        return pes_header_t(aInput, aSize).packet_start_code_prefix == KPESPacketMagic;
+    }
+}
+
+bool IsVideoStream(int aStreamId) {
+    return aStreamId == VIDEO_STREAM;
+}
+
+bool IsAudioStream(int aStreamId) {
+    return aStreamId == AUDIO_STREAM;
 }
 
 } //namespace ts2raw

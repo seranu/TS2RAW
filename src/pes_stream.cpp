@@ -2,6 +2,7 @@
 #include "utils.h"
 
 #include <fstream>
+#include <cassert>
 
 // TODO remove
 #include <iostream>
@@ -9,9 +10,12 @@
 using utils::Endianness;
 using utils::TSException;
 
+#define PES_PACKET_MAGIC 0x01
+
 namespace ts2raw {
 
 const int KMaxBufferSize = 1024 * 1024 * 10; // << 10 MB
+
 
 void PESStream::AddTSPacket(TSPacket& aTsPacket) {
     // is it first packet?
@@ -22,9 +26,11 @@ void PESStream::AddTSPacket(TSPacket& aTsPacket) {
     int tsPayloadSize = 0;
     const unsigned char* pTsPayload = aTsPacket.GetPayload(tsPayloadSize);
 
-    // TODO:
-    // last package does not get created
-    // PES packet len is 0 for video... :()
+    if(_pid == 34){
+        int a = 34;
+        a = tsPayloadSize + a;
+    }
+
     if(aTsPacket.IsPayloadUnitStartIndicatorSet()) {
         // new packet
         // anything already here?
@@ -37,23 +43,25 @@ void PESStream::AddTSPacket(TSPacket& aTsPacket) {
             _streamId = _pCurrentHeader->stream_id;
         }
 
-        if(_pCurrentHeader->packet_start_code_prefix != 0x01) {
+        if(_pCurrentHeader->packet_start_code_prefix != PESPacket::KPESPacketMagic) {
             throw TSException("Inavlid PES packet");
         }
 
         // TODO: what is pes package size here?
-        _allocated = 0;
+        _bufferSize = 0;
         if(_pCurrentHeader->PES_packet_length > 0){
-            _allocated = _pCurrentHeader->PES_packet_length + 8; // << PES_packet_length is the remainder of the length of th packet
+            _bufferSize = 6 /* base header size */
+             + _pCurrentHeader->PES_packet_length; // << PES_packet_length is the remainder of the length of PES packet
         } else {
-            _allocated = KMaxBufferSize;
+            _bufferSize = KMaxBufferSize;
         }
-        _pCurrentData = new unsigned char[_allocated];
-
+        _pCurrentData = new unsigned char[_bufferSize];
+        assert(_bufferSize >= tsPayloadSize);
         memcpy(_pCurrentData, pTsPayload, tsPayloadSize);
         _currentOffset = tsPayloadSize;
     } else {
         // append payload data
+        assert(_bufferSize >= _currentOffset + tsPayloadSize);
         memcpy(_pCurrentData + _currentOffset, pTsPayload, tsPayloadSize);
         _currentOffset += tsPayloadSize;
     }
@@ -61,6 +69,11 @@ void PESStream::AddTSPacket(TSPacket& aTsPacket) {
 
 void PESStream::_WrapUpLastPacket() {
     if(_pCurrentData != nullptr){
+        if(_pCurrentHeader->PES_packet_length > 0){
+            if(_pCurrentHeader->PES_packet_length + 6 != _currentOffset){
+                std::cin.get();
+            }
+        }
         _packets.push_back(utils::make_unique<PESPacket>(_pCurrentData, _currentOffset, *_pCurrentHeader));
         // how to pass ownership to avoid copy?!?
         delete [] _pCurrentData;
@@ -88,11 +101,11 @@ void PESStream::Unpack(const std::string& aOutputFilename){
 
 
 bool PESStream::IsVideo() const {
-    return _streamId == 224;
+    return IsVideoStream(_streamId);
 }
 
 bool PESStream::IsAudio() const {
-    return _streamId == 192;
+    return IsAudioStream(_streamId);
 }
 
 } //namespace ts2raw
