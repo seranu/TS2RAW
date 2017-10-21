@@ -17,8 +17,10 @@ int TSExtractor::Extract(
     std::unique_ptr<TSPacket> pPacket = std::move(tsReader.NextPacket());
 
     while(pPacket){
-        // wow
-        if(pPacket->GetPid() != 0 && pPacket->GetPid() != 32){
+        // int size = 0;
+        // const unsigned char* payload = pPacket->GetPayload(size);
+        // if(PESPacket::IsPESPacket(payload, size)){
+        if(pPacket->GetPid() != 0 && pPacket->GetPid() != 32) {
             streamMap[pPacket->GetPid()].AddTSPacket(*pPacket);
         }
         pPacket = std::move(tsReader.NextPacket());

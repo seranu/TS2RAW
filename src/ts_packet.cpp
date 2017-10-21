@@ -11,6 +11,8 @@ using namespace std;
 using utils::Endianness;
 using utils::TSException;
 
+#define TS_PACKET_MAGIC 0x47
+
 namespace ts2raw {
 
 stream_packet_header_t::stream_packet_header(int32_t aInteger) {
@@ -48,8 +50,8 @@ TSPacket::TSPacket(unsigned char* aInput, int size)
     memcpy(_data, aInput, KStreamPacketSize);
     _header = stream_packet_header_t(utils::ReadUInt32(_data, Endianness::BigEndian));
 
-    if(_header.sync_byte != 'G') {
-        throw TSException("Invalid input data");
+    if(_header.sync_byte != TS_PACKET_MAGIC) {
+        throw TSException("Invalid TS packet");
     } // check real value
 
     // adaptation header exists
