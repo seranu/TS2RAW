@@ -10,13 +10,13 @@
 namespace ts2raw {
 
 // determines whether a new TS packet contains PES data
-static bool IsPESPacket(const TSPacket &aTsPacket,
-                        const std::map<int, PESStream> &aStreamMap) {
+static bool IsPESPacket(const TSPacket& aTsPacket,
+                        const std::map<int, PESStream>& aStreamMap) {
   bool result = false;
   if (aTsPacket.IsPayloadUnitStartIndicatorSet()) {
     // ts packet containing start of packet in payload
     int size = 0;
-    const unsigned char *payload = aTsPacket.GetPayload(size);
+    const unsigned char* payload = aTsPacket.GetPayload(size);
     // check by header
     if (PESPacket::IsPESPacket(payload, size)) {
       result = true;
@@ -31,15 +31,15 @@ static bool IsPESPacket(const TSPacket &aTsPacket,
   return result;
 }
 
-void TSExtractor::Extract(const std::string &aInputFilename,
-                          const std::string &aOutputVideoFilename,
-                          const std::string &aOutputAudioFilename) {
-  TransportStreamReader tsReader(aInputFilename);
+void TSExtractor::Extract(const std::string& aInputFilename,
+                          const std::string& aOutputVideoFilename,
+                          const std::string& aOutputAudioFilename) {
+  TSReader tsReader(aInputFilename);
   std::map<int, PESStream> streamMap;
 
   // go through all packets in the file
-  for (std::unique_ptr<TSPacket> pPacket = std::move(tsReader.NextPacket());
-       pPacket; pPacket = std::move(tsReader.NextPacket())) {
+  for (std::unique_ptr<TSPacket> pPacket = tsReader.NextPacket(); pPacket;
+       pPacket = tsReader.NextPacket()) {
     // drop null packets
     if (pPacket->GetPid() == NULL_PACKET_PID) {
       continue;
@@ -52,8 +52,8 @@ void TSExtractor::Extract(const std::string &aInputFilename,
   }
 
   // write PES packets to coresponding output files
-  for (auto &mapPair : streamMap) {
-    auto &pesStream = mapPair.second;
+  for (auto& mapPair : streamMap) {
+    auto& pesStream = mapPair.second;
     if (pesStream.IsVideo()) {
       pesStream.Unpack(aOutputVideoFilename);
     }
@@ -64,4 +64,4 @@ void TSExtractor::Extract(const std::string &aInputFilename,
   }
 }
 
-} // namespace ts2raw
+}  // namespace ts2raw

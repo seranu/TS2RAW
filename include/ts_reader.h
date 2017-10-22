@@ -10,22 +10,22 @@
 namespace ts2raw {
 
 // class used to read TSPackets from an input .ts file
-class TransportStreamReader {
-public:
+class TSReader {
+ public:
   // constructor
   //   <inputFilename> file path of input ts file
-  TransportStreamReader(const std::string &inputFilename);
+  TSReader(const std::string& inputFilename);
 
-  TransportStreamReader(const TransportStreamReader &) = delete;
-  TransportStreamReader &operator=(const TransportStreamReader &) = delete;
+  TSReader(const TSReader&) = delete;
+  TSReader& operator=(const TSReader&) = delete;
 
   // returns the next TSPacket in the file
   std::unique_ptr<TSPacket> NextPacket();
 
-private:
+ private:
   std::ifstream _inputFile;
 };
 
-} // namespace ts2raw
+}  // namespace ts2raw
 
-#endif //_TRANSPORT_STREAM_REDER_H_
+#endif  //_TRANSPORT_STREAM_REDER_H_

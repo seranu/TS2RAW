@@ -26,15 +26,14 @@ typedef struct stream_packet_header {
 
 // class used to describe a MPEG Transport Stream packet
 class TSPacket {
-
-public:
+ public:
   // constructor
   //   <aInput> input buffer
   //   <aSize>  input buffer size
-  TSPacket(unsigned char *aInput, int aSize);
+  TSPacket(unsigned char* aInput, int aSize);
 
-  TSPacket(const TSPacket &) = delete;
-  TSPacket &operator=(const TSPacket &) = delete;
+  TSPacket(const TSPacket&) = delete;
+  TSPacket& operator=(const TSPacket&) = delete;
 
   // return the PID of the TS packet
   uint16_t GetPid() const { return _header.pid; }
@@ -47,18 +46,18 @@ public:
 
   // returns a pointer to the payload data
   //   <aSize> size of the payload data; output parameter
-  const unsigned char *GetPayload(int &aSize) const {
+  const unsigned char* GetPayload(int& aSize) const {
     aSize = _payloadSize;
     return _payload;
   }
 
-private:
+ private:
   unsigned char _data[KStreamPacketSize];
-  unsigned char *_payload;
+  unsigned char* _payload;
   int _payloadSize;
   stream_packet_header_t _header;
 };
 
-} // namespace ts2raw
+}  // namespace ts2raw
 
-#endif //_TS_PACKET_H_
+#endif  //_TS_PACKET_H_

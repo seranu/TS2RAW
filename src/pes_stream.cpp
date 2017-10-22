@@ -12,9 +12,9 @@ using ts2raw::utils::TSException;
 
 namespace ts2raw {
 
-const int KMaxBufferSize = 1024 * 1024 * 10; // << 10 MB
+const int KMaxBufferSize = 1024 * 1024 * 10;  // << 10 MB
 
-void PESStream::AddTSPacket(TSPacket &aTsPacket) {
+void PESStream::AddTSPacket(TSPacket& aTsPacket) {
   // first packet in the stream
   // set the PID of the stream
   if (_pid == -1) {
@@ -22,7 +22,7 @@ void PESStream::AddTSPacket(TSPacket &aTsPacket) {
   }
 
   int tsPayloadSize = 0;
-  const unsigned char *pTsPayload = aTsPacket.GetPayload(tsPayloadSize);
+  const unsigned char* pTsPayload = aTsPacket.GetPayload(tsPayloadSize);
 
   if (aTsPacket.IsPayloadUnitStartIndicatorSet()) {
     // this is a new PES Packet
@@ -47,10 +47,10 @@ void PESStream::AddTSPacket(TSPacket &aTsPacket) {
     if (_pCurrentHeader->PES_packet_length > 0) {
       // PES packet length is specified
       _bufferSize =
-          6                                     /* base header size */
-          + _pCurrentHeader->PES_packet_length; // << PES_packet_length is the
-                                                // remainder of the length of
-                                                // PES packet
+          6                                      /* base header size */
+          + _pCurrentHeader->PES_packet_length;  // << PES_packet_length is the
+                                                 // remainder of the length of
+                                                 // PES packet
     } else {
       // PES packet length is unspecified
       // allocate "some" memory
@@ -88,25 +88,29 @@ void PESStream::_WrapUpLastPacket() {
   }
 }
 
-void PESStream::Unpack(const std::string &aOutputFilename) {
+void PESStream::Unpack(const std::string& aOutputFilename) {
   // we might have some gathered data
   _WrapUpLastPacket();
 
   std::ofstream out(aOutputFilename.c_str(), std::ios::out | std::ios::binary);
   if (out.is_open()) {
-    for (auto &pPacket : _packets) {
+    for (auto& pPacket : _packets) {
       // write payload to file
       int payloadSize = 0;
-      const unsigned char *payload = pPacket->GetPayload(payloadSize);
-      out.write(reinterpret_cast<const char *>(payload), payloadSize);
+      const unsigned char* payload = pPacket->GetPayload(payloadSize);
+      out.write(reinterpret_cast<const char*>(payload), payloadSize);
     }
   } else {
     throw TSException("Cannot open output file: " + aOutputFilename);
   }
 }
 
-bool PESStream::IsVideo() const { return IsVideoStream(_streamId); }
+bool PESStream::IsVideo() const {
+  return IsVideoStream(_streamId);
+}
 
-bool PESStream::IsAudio() const { return IsAudioStream(_streamId); }
+bool PESStream::IsAudio() const {
+  return IsAudioStream(_streamId);
+}
 
-} // namespace ts2raw
+}  // namespace ts2raw

@@ -7,10 +7,10 @@ using ts2raw::utils::TSException;
 
 namespace ts2raw {
 
-TransportStreamReader::TransportStreamReader(const std::string &inputFilename)
+TSReader::TSReader(const std::string& inputFilename)
     : _inputFile(inputFilename.c_str(), std::ios::in | std::ios::binary) {}
 
-std::unique_ptr<TSPacket> TransportStreamReader::NextPacket() {
+std::unique_ptr<TSPacket> TSReader::NextPacket() {
   if (!_inputFile.is_open()) {
     throw TSException("Input file is not opened.");
   }
@@ -18,7 +18,7 @@ std::unique_ptr<TSPacket> TransportStreamReader::NextPacket() {
   unsigned char buffer[188];
   if (!_inputFile.eof()) {
     // read the next TSPacket from the file
-    _inputFile.read(reinterpret_cast<char *>(buffer), KStreamPacketSize);
+    _inputFile.read(reinterpret_cast<char*>(buffer), KStreamPacketSize);
     if (_inputFile.gcount() == KStreamPacketSize) {
       return ts2raw::utils::make_unique<TSPacket>(buffer, KStreamPacketSize);
     } else {
@@ -30,4 +30,4 @@ std::unique_ptr<TSPacket> TransportStreamReader::NextPacket() {
   return nullptr;
 }
 
-} // namespace ts2raw
+}  // namespace ts2raw

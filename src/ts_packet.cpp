@@ -19,7 +19,7 @@ namespace ts2raw {
 
 /*
 MPEG transport stream HEADER LAYOUT:
-[ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 1, 2, 3, 4, 4, 4, 4, 4 ], 
+[ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 1, 2, 3, 4, 4, 4, 4, 4 ],
 [ 4, 4, 4, 4, 4, 4, 4, 4 ], [ 5, 5, 6, 6, 7, 7, 7, 7 ]
 
 0 - Sync byte
@@ -42,7 +42,7 @@ stream_packet_header_t::stream_packet_header(int32_t aInteger) {
   continuity_counter = static_cast<uint8_t>(aInteger & 0xf);
 }
 
-TSPacket::TSPacket(unsigned char *aInput, int size)
+TSPacket::TSPacket(unsigned char* aInput, int size)
     : _header(0), _payload(nullptr) {
   assert(size == KStreamPacketSize);
 
@@ -56,8 +56,8 @@ TSPacket::TSPacket(unsigned char *aInput, int size)
   }
 
   // adaptation header exists
-  if (_header.adaptation_field_control == 2 || // << 10
-      _header.adaptation_field_control == 3) { // << 11
+  if (_header.adaptation_field_control == 2 ||  // << 10
+      _header.adaptation_field_control == 3) {  // << 11
     uint8_t adaptation_field_length = ReadUInt8(_data + offset);
     // if you ever have doubts about +1, look here
     // this +1 is for the UInt8 you just read
@@ -65,11 +65,11 @@ TSPacket::TSPacket(unsigned char *aInput, int size)
   }
 
   // payload exists
-  if (_header.adaptation_field_control == 1 || // << 01
-      _header.adaptation_field_control == 3) { // << 11
+  if (_header.adaptation_field_control == 1 ||  // << 01
+      _header.adaptation_field_control == 3) {  // << 11
     _payload = _data + offset;
     _payloadSize = KStreamPacketSize - offset;
   }
 }
 
-} // namespace ts2raw
+}  // namespace ts2raw

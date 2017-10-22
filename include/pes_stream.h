@@ -13,28 +13,36 @@ namespace ts2raw {
 // TS Packets contain fragmented PES packets
 // PES Stream can be used to reconstruct the PES packets
 class PESStream {
-public:
+ public:
   PESStream()
-      : _pid(-1), _currentOffset(0), _pCurrentData(nullptr),
-        _pCurrentHeader(nullptr), _streamId(-1), _bufferSize(0) {}
+      : _pid(-1),
+        _currentOffset(0),
+        _pCurrentData(nullptr),
+        _pCurrentHeader(nullptr),
+        _streamId(-1),
+        _bufferSize(0) {}
 
   PESStream(int aPid)
-      : _pid(aPid), _currentOffset(0), _pCurrentData(nullptr),
-        _pCurrentHeader(nullptr), _streamId(-1), _bufferSize(0) {}
+      : _pid(aPid),
+        _currentOffset(0),
+        _pCurrentData(nullptr),
+        _pCurrentHeader(nullptr),
+        _streamId(-1),
+        _bufferSize(0) {}
 
-  PESStream(const PESStream &) = delete;
-  PESStream &operator=(const PESStream &) = delete;
+  PESStream(const PESStream&) = delete;
+  PESStream& operator=(const PESStream&) = delete;
 
   // adds a TS packet to the PES Stream
   // the payload of the TS packet will be used to
   // recontruct the PES packet
   // the TS packet must contain PES packet data
   //   <aTsPacket> input TS packet
-  void AddTSPacket(TSPacket &aTsPacket);
+  void AddTSPacket(TSPacket& aTsPacket);
 
   // writes gathered PES packets payloads to an output file
   //   <aOutputFilename> output file path
-  void Unpack(const std::string &aOutputFilename);
+  void Unpack(const std::string& aOutputFilename);
 
   // returns true if the PES stream holds PES packets denoting a video stream
   bool IsVideo() const;
@@ -42,11 +50,11 @@ public:
   // returns true if the PES stream holds PES packets denoting an audio stream
   bool IsAudio() const;
 
-private:
+ private:
   int _pid;
   int _currentOffset;
-  unsigned char *_pCurrentData;
-  pes_header_t *_pCurrentHeader;
+  unsigned char* _pCurrentData;
+  pes_header_t* _pCurrentHeader;
   std::vector<std::unique_ptr<PESPacket>> _packets;
   int _streamId;
   int _bufferSize;
@@ -56,6 +64,6 @@ private:
   void _WrapUpLastPacket();
 };
 
-} // namespace ts2raw
+}  // namespace ts2raw
 
-#endif //_PES_STREAM_H_
+#endif  //_PES_STREAM_H_

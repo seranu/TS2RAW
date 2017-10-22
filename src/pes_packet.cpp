@@ -47,7 +47,7 @@ const int KExtendedHeaderLength = 3;
 
 const int PESPacket::KPESPacketMagic = 0x01;
 
-pes_header_t::pes_header(const unsigned char *aInput, int size) {
+pes_header_t::pes_header(const unsigned char* aInput, int size) {
   assert(size >= 6);
   int offset = 0;
   int32_t tmp32 = ReadUInt32(aInput, Endianness::BigEndian);
@@ -57,7 +57,7 @@ pes_header_t::pes_header(const unsigned char *aInput, int size) {
   PES_packet_length = ReadUInt16(aInput + offset, Endianness::BigEndian);
 }
 
-pes_extended_header_t::pes_extended_header(const unsigned char *aInput,
+pes_extended_header_t::pes_extended_header(const unsigned char* aInput,
                                            int aSize)
     : flags(0), PES_header_data_length(0) {
   assert(aSize >= KBaseHeaderLen + 3);
@@ -67,9 +67,13 @@ pes_extended_header_t::pes_extended_header(const unsigned char *aInput,
   PES_header_data_length = ReadUInt8(aInput + offset);
 }
 
-PESPacket::PESPacket(unsigned char *aInput, int aSize,
-                     const pes_header_t &aHeader)
-    : _data(nullptr), _payload(nullptr), _dataSize(aSize), _payloadSize(0),
+PESPacket::PESPacket(unsigned char* aInput,
+                     int aSize,
+                     const pes_header_t& aHeader)
+    : _data(nullptr),
+      _payload(nullptr),
+      _dataSize(aSize),
+      _payloadSize(0),
       _baseHeader(aHeader) {
   assert(aInput != nullptr);
   assert(aSize > 0);
@@ -110,7 +114,7 @@ PESPacket::~PESPacket() {
   }
 }
 
-bool PESPacket::IsPESPacket(const unsigned char *aInput, int aSize) {
+bool PESPacket::IsPESPacket(const unsigned char* aInput, int aSize) {
   if (aSize < KBaseHeaderLen) {
     return false;
   } else {
@@ -119,8 +123,12 @@ bool PESPacket::IsPESPacket(const unsigned char *aInput, int aSize) {
   }
 }
 
-bool IsVideoStream(int aStreamId) { return aStreamId == VIDEO_STREAM; }
+bool IsVideoStream(int aStreamId) {
+  return aStreamId == VIDEO_STREAM;
+}
 
-bool IsAudioStream(int aStreamId) { return aStreamId == AUDIO_STREAM; }
+bool IsAudioStream(int aStreamId) {
+  return aStreamId == AUDIO_STREAM;
+}
 
-} // namespace ts2raw
+}  // namespace ts2raw
